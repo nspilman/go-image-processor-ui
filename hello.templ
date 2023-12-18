@@ -2,7 +2,10 @@ package main
 
 templ hello(name string) {
 	@Page("Pioneer") {
-		<img style="width:400px; height:600px;" src={ iAmABanana() }/>
-		// <div style="color:blue">hey</div>
+		<button
+ 			hx-post="/pioneer"
+ 			hx-swap="outerHTML"
+ 			class="font-lg font-bold"
+		>hey</button>
 	}
 }

@@ -41,7 +41,7 @@ func Page(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</script><link rel=\"stylesheet\" href=\"/dist/styles.css\"></head><body class=\"h-full bg-yellow-50 font-mono\"><section class=\"max-w-lg mx-auto my-2\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</script><link rel=\"stylesheet\" href=\"/output.css\"></head><body class=\"h-full bg-yellow-50 font-mono\"><section class=\"max-w-lg mx-auto my-2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
