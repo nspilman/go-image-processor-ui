@@ -5,15 +5,29 @@ import (
 	"embed"
 	"encoding/base64"
 	"fmt"
+	"image"
 	"image/jpeg"
 	"image/png"
-	"io"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/a-h/templ"
 )
+
+func generateBase64Image(img image.Image) (string, error) {
+
+	// Encode to PNG
+	buffer := new(bytes.Buffer)
+	if err := png.Encode(buffer, img); err != nil {
+		return "", err
+	}
+
+	// Convert to base64
+	base64Image := base64.StdEncoding.EncodeToString(buffer.Bytes())
+
+	return "data:image/png;base64," + base64Image, nil
+}
 
 func convertJpegToPng(jpegData []byte) ([]byte, error) {
 	// Decode the JPEG data
@@ -44,17 +58,23 @@ func main() {
 	http.HandleFunc("/upload", func(w http.ResponseWriter, r *http.Request) {
 		r.ParseMultipartForm(0)
 
-		buf, err := io.ReadAll(r.Body)
+		file, fileHeader, err := r.FormFile("file")
 		if err != nil {
-			log.Fatal("request", err)
+			log.Fatal("Error retrieving the file: ", err)
+			return
 		}
+		defer file.Close()
+
+		fmt.Printf("Uploaded File: %+v\n", fileHeader.Filename)
+		fmt.Printf("File Size: %+v\n", fileHeader.Size)
+		fmt.Printf("MIME Header: %+v\n", fileHeader.Header)
 
 		outputFile, err := os.Create("reconstructed.jpg")
 		if err != nil {
 			panic(err)
 		}
 
-		img, err := jpeg.Decode(bytes.NewReader(buf))
+		img, err := jpeg.Decode(file)
 
 		defer outputFile.Close()
 		jpeg.Encode(outputFile, img, nil)
@@ -73,14 +93,14 @@ func main() {
 
 		// pioneer, _, err := image.Decode(bytes.NewReader(buf))
 		// jpgImage, err := convertJpegToPng(file)
-		base64Image := base64.StdEncoding.EncodeToString(buf)
+		base64Image, err := generateBase64Image(img)
 		var opts jpeg.Options
 		opts.Quality = 1
 
 		// err = jpeg.Encode(out, pioneer, &opts)
 		// pioneer, err := jpeg.Decode(buf)
 
-		Image("data:image/png;base64,"+base64Image).Render(r.Context(), w)
+		Image(base64Image).Render(r.Context(), w)
 	})
 
 	fmt.Println("Listening on :4000")
