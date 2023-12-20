@@ -48,9 +48,8 @@ func convertJpegToPng(jpegData []byte) ([]byte, error) {
 var FS embed.FS
 
 func main() {
-	component := hello("Julian")
 
-	http.Handle("/", templ.Handler(component))
+	http.Handle("/", templ.Handler(PageWrapper("IAMABANANA", button("hello", "WHATS UP", "/pioneer"))))
 	http.HandleFunc("/output.css", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./assets/dist/output.css")
 	})

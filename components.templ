@@ -1,5 +1,28 @@
 package main
 
+templ button(name string, content string, whereTo string) {
+	<button hx-get={ whereTo } hx-swap="outerHTML" value={ name }>{ content }</button>
+}
+
+templ PioneerForm() {
+	<form id="form" hx-encoding="multipart/form-data" hx-post="/upload">
+		<input type="file" name="file" accept="image/jpeg"/>
+		<button>
+			Upload
+		</button>
+		<progress id="progress" value="0" max="100"></progress>
+	</form>
+	<script>
+        htmx.on('#form', 'htmx:xhr:progress', function(evt) {
+          htmx.find('#progress').setAttribute('value', evt.detail.loaded/evt.detail.total * 100)
+        });
+    </script>
+}
+
+templ Image(src string) {
+	<img src={ src }/>
+}
+
 templ Page(title string) {
 	<!DOCTYPE html>
 	<html lang="en" class="h-full">
@@ -20,4 +43,12 @@ templ Page(title string) {
 			</section>
 		</body>
 	</html>
+}
+
+templ PageWrapper(title string, component templ.Component) {
+	@Page(title) {
+		<div>
+			@component
+		</div>
+	}
 }
