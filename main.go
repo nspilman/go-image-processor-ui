@@ -10,7 +10,6 @@ import (
 	"image/png"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/a-h/templ"
 )
@@ -49,11 +48,10 @@ var FS embed.FS
 
 func main() {
 
-	http.Handle("/", templ.Handler(PageWrapper("IAMABANANA", button("hello", "WHATS UP", "/pioneer"))))
+	http.Handle("/", templ.Handler(PageWrapper("Image processing", PioneerForm())))
 	http.HandleFunc("/output.css", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./assets/dist/output.css")
 	})
-	http.Handle("/pioneer", templ.Handler(PioneerForm()))
 	http.HandleFunc("/upload", func(w http.ResponseWriter, r *http.Request) {
 		r.ParseMultipartForm(0)
 
@@ -64,40 +62,23 @@ func main() {
 		}
 		defer file.Close()
 
+		if err != nil {
+			panic(err)
+		}
+
 		fmt.Printf("Uploaded File: %+v\n", fileHeader.Filename)
 		fmt.Printf("File Size: %+v\n", fileHeader.Size)
 		fmt.Printf("MIME Header: %+v\n", fileHeader.Header)
 
-		outputFile, err := os.Create("reconstructed.jpg")
-		if err != nil {
-			panic(err)
-		}
-
 		img, err := jpeg.Decode(file)
 
-		defer outputFile.Close()
-		jpeg.Encode(outputFile, img, nil)
-
-		// file, err := os.ReadFile("./BlueSailboats.jpg")
-		// if err != nil {
-		// 	panic(err)
-		// }
-		// defer file.Close()
-
-		// Step 3: Decode the image.
-		// img, err := jpeg.Decode(file)
 		if err != nil {
 			panic(err)
 		}
 
-		// pioneer, _, err := image.Decode(bytes.NewReader(buf))
-		// jpgImage, err := convertJpegToPng(file)
-		base64Image, err := generateBase64Image(img)
+		base64Image, err := generateBase64Image(InvertLight(img))
 		var opts jpeg.Options
 		opts.Quality = 1
-
-		// err = jpeg.Encode(out, pioneer, &opts)
-		// pioneer, err := jpeg.Decode(buf)
 
 		Image(base64Image).Render(r.Context(), w)
 	})
