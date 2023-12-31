@@ -76,7 +76,10 @@ func main() {
 			panic(err)
 		}
 
-		base64Image, err := generateBase64Image(InvertLight(img))
+		// secondImage, err := LoadImageFromFile("./outer-space.jpeg")
+
+		// base64Image, err := generateBase64Image((ReplaceHue(secondImage, InvertLight(img))))
+		base64Image, err := generateBase64Image(NormalizeLight(img))
 		var opts jpeg.Options
 		opts.Quality = 1
 
