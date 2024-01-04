@@ -4,18 +4,31 @@ templ button(name string, content string, whereTo string) {
 	<button hx-get={ whereTo } hx-swap="outerHTML" value={ name }>{ content }</button>
 }
 
-templ PioneerForm() {
-	<form id="form" hx-encoding="multipart/form-data" hx-post="/upload">
+templ ImageForm(endpoint string, functionOptions []string) {
+	<form id="form" hx-encoding="multipart/form-data" hx-post={ endpoint }>
 		<input type="file" name="file" accept="image/jpeg"/>
+		<input type="file" name="file2" accept="image/jpeg"/>
 		<button>
 			Upload
 		</button>
 		<progress id="progress" value="0" max="100"></progress>
 	</form>
+	<select id="functionSelect" value={ endpoint }>
+		for _, funcOption := range functionOptions {
+			if funcOption == endpoint {
+				<option funcOption selected>{ funcOption }</option>
+			} else {
+				<option funcOption>{ funcOption }</option>
+			}
+		}
+	</select>
 	<script>
         htmx.on('#form', 'htmx:xhr:progress', function(evt) {
           htmx.find('#progress').setAttribute('value', evt.detail.loaded/evt.detail.total * 100)
         });
+		  document.getElementById('functionSelect').addEventListener('change', function() {
+                    window.location.href = this.value;
+                });
     </script>
 }
 
