@@ -3,6 +3,9 @@ package main
 import (
 	"image"
 	"image/color"
+	"math"
+
+	"github.com/nfnt/resize"
 )
 
 const MAX = 255
@@ -41,6 +44,13 @@ type Pixel struct {
 
 func getHueRatio(pixel color.RGBA) PixelRatio {
 	light := getTotalLight(pixel)
+	if light == 0 {
+		return PixelRatio{
+			R: float32(1 / 3),
+			G: float32(1 / 3),
+			B: float32(1 / 3),
+		}
+	}
 	ratio := PixelRatio{
 		R: float32(pixel.R) / float32(light),
 		G: float32(pixel.G) / float32(light),
@@ -65,7 +75,7 @@ func InvertLight(img image.Image) image.Image {
 
 func normalizeLight(pixel color.RGBA) color.RGBA {
 	hue := getHueRatio(pixel)
-	light := uint16(700)
+	light := uint16(500)
 	return applyLightToHue(hue, light)
 }
 
@@ -111,11 +121,47 @@ func FlattenImage(img image.Image) []color.RGBA {
 	return flattened
 }
 
-func QuantizeImage(img image.Image) image.Image {
-	flatted := FlattenImage((img))
+func QuantizeImage(imgs []image.Image) image.Image {
+	img := imgs[0]
+	bounds := img.Bounds()
+	width1, height1 := bounds.Max.X, bounds.Max.Y
+
+	resized := resize.Resize(uint(width1/100), uint(height1/100), img, resize.Lanczos3)
+
+	flatted := FlattenImage(resized)
+
 	colors := QuantizeColors(flatted)
+
 	getClosestPixelColor := func(pixel color.RGBA) color.RGBA {
 		return FindClosestQuantizedColor(pixel, colors)
 	}
 	return modifyImage(img, getClosestPixelColor)
+}
+
+func roundToNearest(number float64, interval int) int {
+	divisor := float64(interval)
+	rounded := math.Floor(number/divisor) * divisor
+	remainder := number - rounded
+
+	if remainder >= divisor/2 {
+		rounded += divisor
+	}
+
+	return int(rounded)
+}
+
+func quantizeLight(pixel color.RGBA) color.RGBA {
+	var newLight int
+	quantizedLight := roundToNearest(float64(getTotalLight(pixel)), 750)
+	if quantizedLight > (255 * 3) {
+		newLight = 255 * 3
+	} else {
+		newLight = quantizedLight
+	}
+	return applyLightToHue(getHueRatio((pixel)), uint16(newLight))
+}
+
+func QuantizeLight(imgs []image.Image) image.Image {
+	img := imgs[0]
+	return modifyImage(img, quantizeLight)
 }

@@ -1,13 +1,19 @@
 package main
 
+import (
+	// other imports
+	"strconv" // Add this line to import the strconv package
+)
+
 templ button(name string, content string, whereTo string) {
 	<button hx-get={ whereTo } hx-swap="outerHTML" value={ name }>{ content }</button>
 }
 
-templ ImageForm(endpoint string, functionOptions []string) {
+templ ImageForm(endpoint string, functionOptions []string, numFiles int8) {
 	<form id="form" hx-encoding="multipart/form-data" hx-post={ endpoint }>
-		<input type="file" name="file" accept="image/jpeg"/>
-		<input type="file" name="file2" accept="image/jpeg"/>
+		for i := range make([]int, numFiles) {
+			<input type="file" name={ "file" + strconv.Itoa(i+1) } accept="image/jpeg"/>
+		}
 		<button>
 			Upload
 		</button>

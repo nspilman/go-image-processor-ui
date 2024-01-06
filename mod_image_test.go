@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"image/color"
+	"strconv"
 	"testing"
 )
 
@@ -38,5 +39,15 @@ func TestGetHueRatio_ReturnsFullRedRatio_WhenFullRedPixelPassed(t *testing.T) {
 	fmt.Println(result)
 	if result.B != 0 || result.R != 1 || result.G != 0 {
 		t.Errorf("error")
+	}
+}
+
+func TestAveragePixel(t *testing.T) {
+	firstPixel := color.RGBA{0, 0, 0, 255}
+	secondPixel := color.RGBA{100, 100, 100, 255}
+	result := averagePixel2(firstPixel, secondPixel)
+	expected := uint8(50)
+	if result.R != expected || result.G != expected || result.B != expected {
+		t.Errorf("error, R:" + strconv.Itoa(int(result.R)) + " G: " + strconv.Itoa(int(result.G)) + " B: " + strconv.Itoa(int(result.B)))
 	}
 }

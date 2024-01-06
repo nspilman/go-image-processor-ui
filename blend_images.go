@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"image/color"
+	"os"
 
 	"github.com/nfnt/resize"
 )
@@ -63,12 +65,13 @@ func blendImages(image1 image.Image, image2 image.Image, modFunction func(pixel1
 	}
 	return newImage
 }
-func averagePixel(pixel1 color.RGBA, pixel2 color.RGBA) color.RGBA {
-	red := (pixel1.R + pixel2.R) / 2
-	green := (pixel1.G + pixel2.G) / 2
-	blue := (pixel1.B + pixel2.B) / 2
 
-	return color.RGBA{R: red, G: green, B: blue, A: 255}
+func averagePixel(pixel1 color.RGBA, pixel2 color.RGBA) color.RGBA {
+	hue1, hue2 := getHueRatio(pixel1), getHueRatio(pixel2)
+	fmt.Println(hue1, hue2)
+	newHue := PixelRatio{R: (hue1.R + hue2.R) / 2, G: (hue1.G + hue2.G) / 2, B: (hue1.B + hue2.B) / 2}
+	newLight := getTotalLight(pixel1) + getTotalLight(pixel2)
+	return applyLightToHue(newHue, newLight)
 }
 
 func replaceHue(pixel1 color.RGBA, pixel2 color.RGBA) color.RGBA {
@@ -84,13 +87,23 @@ func replaceBrightPixel(pixel1 color.RGBA, pixel2 color.RGBA) color.RGBA {
 	return pixel1
 }
 
-func ReplaceBrightPixels(img1 image.Image, img2 image.Image) image.Image {
+func ReplaceBrightPixels(imgs []image.Image) image.Image {
+	img1, img2 := expectTwoImages(imgs)
 	return blendImages(img1, img2, replaceBrightPixel)
 }
-func BlendImages(img1 image.Image, img2 image.Image) image.Image {
+
+func expectTwoImages(imgs []image.Image) (image.Image, image.Image) {
+	if len(imgs) != 2 {
+		os.Exit(1)
+	}
+	return imgs[0], imgs[1]
+}
+func BlendImages(imgs []image.Image) image.Image {
+	img1, img2 := expectTwoImages(imgs)
 	return blendImages(img1, img2, averagePixel)
 }
 
-func ReplaceHue(img1 image.Image, img2 image.Image) image.Image {
+func ReplaceHue(imgs []image.Image) image.Image {
+	img1, img2 := expectTwoImages(imgs)
 	return blendImages(img1, img2, replaceHue)
 }
