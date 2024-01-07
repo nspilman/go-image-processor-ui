@@ -1,1 +1,5 @@
-/assets
+/assets/images/*
+*.jpg
+*.jpeg
+*.png
+*.HEIC
