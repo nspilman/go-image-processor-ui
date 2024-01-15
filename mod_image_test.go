@@ -45,7 +45,7 @@ func TestGetHueRatio_ReturnsFullRedRatio_WhenFullRedPixelPassed(t *testing.T) {
 func TestAveragePixel(t *testing.T) {
 	firstPixel := color.RGBA{0, 0, 0, 255}
 	secondPixel := color.RGBA{100, 100, 100, 255}
-	result := averagePixel2(firstPixel, secondPixel)
+	result := averagePixel(firstPixel, secondPixel)
 	expected := uint8(50)
 	if result.R != expected || result.G != expected || result.B != expected {
 		t.Errorf("error, R:" + strconv.Itoa(int(result.R)) + " G: " + strconv.Itoa(int(result.G)) + " B: " + strconv.Itoa(int(result.B)))

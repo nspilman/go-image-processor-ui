@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"os"
+	"sync"
 
 	"github.com/nfnt/resize"
 )
@@ -66,9 +66,46 @@ func blendImages(image1 image.Image, image2 image.Image, modFunction func(pixel1
 	return newImage
 }
 
+func blendImagesConcurrently(image1, image2 image.Image, modFunction func(pixel1, pixel2 color.RGBA) color.RGBA) image.Image {
+	img1, img2 := resizeImages(image1, image2) // Assuming resizeImages is defined elsewhere
+	bounds := img1.Bounds()
+	width, height := bounds.Max.X, bounds.Max.Y
+	newImage := image.NewRGBA(image.Rect(0, 0, width, height))
+
+	var wg sync.WaitGroup
+
+	// Determine the number of goroutines to use
+	numGoroutines := 16 // For example, can be tuned based on the environment
+	rowsPerGoroutine := height / numGoroutines
+
+	for i := 0; i < numGoroutines; i++ {
+		wg.Add(1)
+		go func(startRow, endRow int) {
+			defer wg.Done()
+			for y := startRow; y < endRow; y++ {
+				for x := bounds.Min.X; x < bounds.Max.X; x++ {
+					pixel1 := img1.At(x, y)
+					pixel2 := img2.At(x, y)
+					rgba := modFunction(color.RGBAModel.Convert(pixel1).(color.RGBA), color.RGBAModel.Convert(pixel2).(color.RGBA))
+					newImage.Set(x, y, rgba)
+				}
+			}
+		}(i*rowsPerGoroutine, min((i+1)*rowsPerGoroutine, height))
+	}
+	wg.Wait()
+	return newImage
+}
+
+// min returns the smaller of x or y.
+func min(x, y int) int {
+	if x < y {
+		return x
+	}
+	return y
+}
+
 func averagePixel(pixel1 color.RGBA, pixel2 color.RGBA) color.RGBA {
 	hue1, hue2 := getHueRatio(pixel1), getHueRatio(pixel2)
-	fmt.Println(hue1, hue2)
 	newHue := PixelRatio{R: (hue1.R + hue2.R) / 2, G: (hue1.G + hue2.G) / 2, B: (hue1.B + hue2.B) / 2}
 	newLight := getTotalLight(pixel1) + getTotalLight(pixel2)
 	return applyLightToHue(newHue, newLight)
@@ -105,5 +142,5 @@ func BlendImages(imgs []image.Image) image.Image {
 
 func ReplaceHue(imgs []image.Image) image.Image {
 	img1, img2 := expectTwoImages(imgs)
-	return blendImages(img1, img2, replaceHue)
+	return blendImagesConcurrently(img1, img2, replaceHue)
 }

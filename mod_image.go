@@ -4,6 +4,7 @@ import (
 	"image"
 	"image/color"
 	"math"
+	"sync"
 
 	"github.com/nfnt/resize"
 )
@@ -21,6 +22,30 @@ func modifyImage(img image.Image, modFunction func(pixel color.RGBA) color.RGBA)
 			newImage.Set(x, y, rgba)
 		}
 	}
+	return newImage
+}
+
+func modifyImageConcurrently(img image.Image, modFunction func(pixel color.RGBA) color.RGBA) image.Image {
+	bounds := img.Bounds()
+	width, height := bounds.Max.X, bounds.Max.Y
+	newImage := image.NewRGBA(image.Rect(0, 0, width, height))
+
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			wg.Add(1)
+			go func(x, y int) {
+				defer wg.Done()
+				pixel := img.At(x, y)
+				rgba := modFunction(color.RGBAModel.Convert(pixel).(color.RGBA))
+				mu.Lock()
+				newImage.Set(x, y, rgba)
+				mu.Unlock()
+			}(x, y)
+		}
+	}
+	wg.Wait()
 	return newImage
 }
 
@@ -152,7 +177,7 @@ func roundToNearest(number float64, interval int) int {
 
 func quantizeLight(pixel color.RGBA) color.RGBA {
 	var newLight int
-	quantizedLight := roundToNearest(float64(getTotalLight(pixel)), 750)
+	quantizedLight := roundToNearest(float64(getTotalLight(pixel)), 100)
 	if quantizedLight > (255 * 3) {
 		newLight = 255 * 3
 	} else {
