@@ -71,11 +71,8 @@ func blendImagesConcurrently(image1, image2 image.Image, modFunction func(pixel1
 	bounds := img1.Bounds()
 	width, height := bounds.Max.X, bounds.Max.Y
 	newImage := image.NewRGBA(image.Rect(0, 0, width, height))
-
 	var wg sync.WaitGroup
-
-	// Determine the number of goroutines to use
-	numGoroutines := 16 // For example, can be tuned based on the environment
+	numGoroutines := 500
 	rowsPerGoroutine := height / numGoroutines
 
 	for i := 0; i < numGoroutines; i++ {
