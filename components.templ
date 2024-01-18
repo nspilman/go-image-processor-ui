@@ -10,11 +10,11 @@ templ button(name string, content string, whereTo string) {
 }
 
 templ ImageForm(endpoint string, functionOptions []string, numFiles int8) {
-	<form id="form" hx-encoding="multipart/form-data" hx-post={ endpoint }>
+	<form id="form" hx-encoding="multipart/form-data" hx-post={ endpoint } hx-target="#image-display">
 		for i := range make([]int, numFiles) {
 			<input type="file" name={ "file" + strconv.Itoa(i+1) } accept="image/jpeg"/>
 		}
-		<button>
+		<button type="submit" onClick="submitForm">
 			Upload
 		</button>
 		<progress id="progress" value="0" max="100"></progress>
@@ -28,13 +28,18 @@ templ ImageForm(endpoint string, functionOptions []string, numFiles int8) {
 			}
 		}
 	</select>
+	<div id="image-display"></div>
 	<script>
         htmx.on('#form', 'htmx:xhr:progress', function(evt) {
           htmx.find('#progress').setAttribute('value', evt.detail.loaded/evt.detail.total * 100)
         });
+		htmx.on("#form", "htmx:xhr:loadend", function(evt) {
+			evt.target.reset()
+        })
 		  document.getElementById('functionSelect').addEventListener('change', function() {
                     window.location.href = this.value;
                 });
+
     </script>
 }
 
