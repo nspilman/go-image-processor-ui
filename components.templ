@@ -14,7 +14,7 @@ templ ImageForm(endpoint string, functionOptions []string, numFiles int8) {
 		for i := range make([]int, numFiles) {
 			<input type="file" name={ "file" + strconv.Itoa(i+1) } accept="image/jpeg"/>
 		}
-		<button type="submit" onClick="submitForm">
+		<button type="submit">
 			Upload
 		</button>
 		<progress id="progress" value="0" max="100"></progress>
@@ -44,7 +44,26 @@ templ ImageForm(endpoint string, functionOptions []string, numFiles int8) {
 }
 
 templ Image(src string) {
-	<img src={ src }/>
+	<div>
+		<button onClick="downloadImage()">download </button>
+		<img id="output" src={ src }/>
+		<script>
+		function downloadImage() {
+   			var image = document.getElementById("output");
+
+		    if (image) {
+        	var downloadLink = document.createElement('a');
+	        downloadLink.download = 'downloadedImage.jpg';
+	        downloadLink.href = image.src;
+	        document.body.appendChild(downloadLink);
+	        downloadLink.click();
+	        document.body.removeChild(downloadLink);
+    	} else {
+        console.log('Image with ID ' + imageId + ' not found');
+    	}
+	}
+	</script>
+	</div>
 }
 
 templ Page(title string) {
