@@ -1,16 +1,13 @@
 package main
 
 import (
+	"image"
 	"image/color"
 	"testing"
 )
 
-func BenchmarkModifyImageConcurrent(b *testing.B) {
-	dimension := 250
-
-	// Create a sample image
-
-	img := CreateNewImage(dimension, dimension, func(height, width int) color.RGBA {
+func getTwoTestImages(dimension int) (image.Image, image.Image) {
+	img1 := CreateNewImage(dimension, dimension, func(height, width int) color.RGBA {
 		return color.RGBA{
 			R: 200,
 			G: 200,
@@ -18,7 +15,6 @@ func BenchmarkModifyImageConcurrent(b *testing.B) {
 			A: 255,
 		}
 	})
-
 	img2 := CreateNewImage(dimension, dimension, func(height, width int) color.RGBA {
 		return color.RGBA{
 			R: 100,
@@ -27,6 +23,15 @@ func BenchmarkModifyImageConcurrent(b *testing.B) {
 			A: 255,
 		}
 	})
+	return img1, img2
+}
+
+func getTestDimension() int {
+	return 300
+}
+
+func BenchmarkModifyImageConcurrent(b *testing.B) {
+	img, img2 := getTwoTestImages(getTestDimension())
 
 	b.ResetTimer() // Reset the timer to exclude the setup time
 
@@ -36,26 +41,7 @@ func BenchmarkModifyImageConcurrent(b *testing.B) {
 }
 
 func BenchmarkModifyImage(b *testing.B) {
-	// Create a sample image
-	dimension := 250
-
-	img := CreateNewImage(dimension, dimension, func(height, width int) color.RGBA {
-		return color.RGBA{
-			R: 200,
-			G: 200,
-			B: 200,
-			A: 255,
-		}
-	})
-
-	img2 := CreateNewImage(dimension, dimension, func(height, width int) color.RGBA {
-		return color.RGBA{
-			R: 100,
-			G: 100,
-			B: 100,
-			A: 255,
-		}
-	})
+	img, img2 := getTwoTestImages(getTestDimension())
 
 	b.ResetTimer() // Reset the timer to exclude the setup time
 

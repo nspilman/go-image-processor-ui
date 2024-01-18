@@ -134,7 +134,7 @@ func expectTwoImages(imgs []image.Image) (image.Image, image.Image) {
 }
 func BlendImages(imgs []image.Image) image.Image {
 	img1, img2 := expectTwoImages(imgs)
-	return blendImages(img1, img2, averagePixel)
+	return blendImagesConcurrently(img1, img2, averagePixel)
 }
 
 func ReplaceHue(imgs []image.Image) image.Image {
